@@ -27,8 +27,9 @@ const VISUAL_DEBUG = false;
  * @param {function(...any):void} log
  * @param {string} proxyHost
  * @param {string} executablePath path to chromium executable to use
+ * @param {string} customExtensionPath path to custom extension to load
  */
-function openBrowser(log, proxyHost, executablePath) {
+function openBrowser(log, proxyHost, executablePath, customExtensionPath) {
     /**
      * @type {import('puppeteer').BrowserLaunchArgumentOptions}
      */
@@ -36,9 +37,12 @@ function openBrowser(log, proxyHost, executablePath) {
         args: [
             // enable FLoC
             '--enable-blink-features=InterestCohortAPI',
-            '--enable-features="FederatedLearningOfCohorts:update_interval/10s/minimum_history_domain_size_required/1,FlocIdSortingLshBasedComputation,InterestCohortFeaturePolicy"'
+            '--enable-features="FederatedLearningOfCohorts:update_interval/10s/minimum_history_domain_size_required/1,FlocIdSortingLshBasedComputation,InterestCohortFeaturePolicy"',
+            '--load-extension=' + customExtensionPath,
         ]
     };
+    // log the args
+    log('Launching browser with args:', args.args.join(' '));
     if (VISUAL_DEBUG) {
         args.headless = false;
         args.devtools = true;
@@ -288,12 +292,12 @@ function isThirdPartyRequest(documentUrl, requestUrl) {
 
 /**
  * @param {URL} url
- * @param {{collectors?: import('./collectors/BaseCollector')[], log?: function(...any):void, filterOutFirstParty?: boolean, emulateMobile?: boolean, emulateUserAgent?: boolean, proxyHost?: string, browserContext?: puppeteer.BrowserContext, runInEveryFrame?: function():void, executablePath?: string, maxLoadTimeMs?: number, extraExecutionTimeMs?: number, collectorFlags?: Object.<string, string>}} options
+ * @param {{collectors?: import('./collectors/BaseCollector')[], log?: function(...any):void, filterOutFirstParty?: boolean, emulateMobile?: boolean, emulateUserAgent?: boolean, proxyHost?: string, browserContext?: puppeteer.BrowserContext, runInEveryFrame?: function():void, executablePath?: string, customExtensionPath?: string, maxLoadTimeMs?: number, extraExecutionTimeMs?: number, collectorFlags?: Object.<string, string>}} options
  * @returns {Promise<CollectResult>}
  */
 module.exports = async (url, options) => {
     const log = options.log || (() => {});
-    const browser = options.browserContext ? null : await openBrowser(log, options.proxyHost, options.executablePath);
+    const browser = options.browserContext ? null : await openBrowser(log, options.proxyHost, options.executablePath, options.customExtensionPath);
     // Create a new incognito browser context.
     const context = options.browserContext || await browser.createIncognitoBrowserContext();
 
