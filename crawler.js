@@ -34,6 +34,7 @@ function openBrowser(log, proxyHost, executablePath, customExtensionPath) {
      * @type {import('puppeteer').BrowserLaunchArgumentOptions}
      */
     const args = {
+        userDataDir: './browser-profile',
         args: [
             // enable FLoC
             '--enable-blink-features=InterestCohortAPI',
